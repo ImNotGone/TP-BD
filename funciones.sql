@@ -1,4 +1,4 @@
-CREATE TABLE clientes_banco (
+CREATE TABLE IF NOT EXISTS clientes_banco (
     codigo      INT,
     dni         INT NOT NULL,   /* TODO: ADD CHECKS > 0? MAKE UNIQUE?*/
     telefono    VARCHAR(100),
@@ -6,10 +6,8 @@ CREATE TABLE clientes_banco (
     direccion   VARCHAR(100),
     PRIMARY KEY (codigo)
 );
--- Load using `psql -h bd1.it.itba.edu.ar -U <user> PROOF`
--- \copy clientes_banco(codigo, dni, telefono, nombre, direccion) FROM './clientes_banco.csv' DELIMITER ',' CSV HEADER;
 
-CREATE TABLE prestamos_banco (
+CREATE TABLE IF NOT EXISTS prestamos_banco (
     codigo          INT,
     fecha           DATE NOT NULL,
     codigo_cliente  INT NOT NULL,
@@ -18,11 +16,7 @@ CREATE TABLE prestamos_banco (
     PRIMARY KEY (codigo)
 );
 
--- Load using `psql -h bd1.it.itba.edu.ar -U <user> PROOF`
--- \copy prestamos_banco(codigo, fecha, codigo_cliente, importe) FROM './prestamos_banco.csv' DELIMITER ',' CSV HEADER;
-
-
-CREATE TABLE pagos_cuotas (
+CREATE TABLE IF NOT EXISTS pagos_cuotas (
     nro_cuota       INT,            /* TODO: check if not null is necesary*/
     codigo_prestamo INT,            /* TODO: check if not null is necesary*/
     importe         INT NOT NULL,   /* >0 ?*/
@@ -32,9 +26,11 @@ CREATE TABLE pagos_cuotas (
 );
 
 -- Load using `psql -h bd1.it.itba.edu.ar -U <user> PROOF`
--- \copy pagos_cuotas(nro_cuota, codigo_prestamo, importe, fecha) FROM './pagos_cuotas.csv' DELIMITER ',' CSV HEADER;
+-- \COPY clientes_banco(codigo, dni, telefono, nombre, direccion) FROM './clientes_banco.csv' DELIMITER ',' CSV HEADER;
+-- \COPY prestamos_banco(codigo, fecha, codigo_cliente, importe) FROM './prestamos_banco.csv' DELIMITER ',' CSV HEADER;
+-- \COPY pagos_cuotas(nro_cuota, codigo_prestamo, importe, fecha) FROM './pagos_cuotas.csv' DELIMITER ',' CSV HEADER;
 
-CREATE TABLE backup (
+CREATE TABLE IF NOT EXISTS backup (
     dni                  INT,           -- dni cliente
     nombre               INT,           -- nombre cliente
     telefono             VARCHAR,       -- telefono cliente
