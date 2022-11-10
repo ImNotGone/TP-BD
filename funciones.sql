@@ -1,8 +1,8 @@
 CREATE TABLE clientes_banco (
     codigo   INT,
-    dni      INT,
-    telefono varchar(100),
-    nombre   VARCHAR(100),
+    dni      INT NOT NULL, /*TODO ADD CHECKS > 0? MAKE UNIQUE?*/
+    telefono VARCHAR(100),
+    nombre   VARCHAR(100) NOT NULL,
     direccion VARCHAR(100),
     PRIMARY KEY (codigo)
 );
@@ -12,10 +12,10 @@ CREATE TABLE clientes_banco (
 
 CREATE TABLE prestamos_banco (
     codigo INT,
-    fecha DATE,
-    codigo_cliente INT,
-    importe INT,
-    FOREIGN KEY (codigo_cliente) REFERENCES clientes_banco, /* ON DELETE CASCADE ON UPDATE RESTRICT?*/
+    fecha DATE NOT NULL,
+    codigo_cliente INT NOT NULL,
+    importe INT NOT NULL,
+    FOREIGN KEY (codigo_cliente) REFERENCES clientes_banco(codigo) ON DELETE CASCADE, /*ON UPDATE RESTRICT?*/
     PRIMARY KEY (codigo)
 );
 
@@ -24,12 +24,12 @@ CREATE TABLE prestamos_banco (
 */
 
 CREATE TABLE pagos_cuotas (
-    nro_cuota INT,
-    codigo_prestamo INT,
-    importe INT,
-    fecha DATE,
-    FOREIGN KEY (codigo_prestamo) REFERENCES prestamos_banco,
-    PRIMARY KEY (fecha, codigo_prestamo, nro_cuota) /* TODO: revisar */
+    nro_cuota INT,        /* TODO: check if not null is necesary*/
+    codigo_prestamo INT, /* TODO: check if not null is necesary*/
+    importe INT NOT NULL, /* >0 ?*/
+    fecha DATE NOT NULL,
+    FOREIGN KEY (codigo_prestamo) REFERENCES prestamos_banco(codigo) ON DELETE CASCADE, /*ON UPDATE RESTRICT?*/
+    PRIMARY KEY (codigo_prestamo, nro_cuota)
 );
 
 /*
