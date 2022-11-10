@@ -35,3 +35,14 @@ CREATE TABLE pagos_cuotas (
 /*
 \copy pagos_cuotas(nro_cuota, codigo_prestamo, importe, fecha) FROM './pagos_cuotas.csv' DELIMITER ',' CSV HEADER;
 */
+
+CREATE TABLE backup (
+    dni                  INT,           -- dni cliente
+    nombre               INT,           -- nombre cliente
+    telefono             VARCHAR,       -- telefono cliente
+    cant_prestamos       INT,           -- cantidad de prestamos otorgados
+    monto_prestamos      INT,           -- monto total de prestamos otorgados
+    monto_pago_cuotas    INT,           -- monto total de pagos realizados
+    ind_pagos_pendientes BOOLEAN,       -- indicador de pagos pentientes (true if monto_prestamos != monto_pago_cuotas)
+    PRIMARY KEY (dni)
+);
