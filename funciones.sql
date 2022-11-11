@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS clientes_banco (
 
 CREATE TABLE IF NOT EXISTS prestamos_banco (
     codigo          INT,
-    fecha           DATE NOT NULL,
+    fecha           DATE NOT NULL, -- TODO: check fechas?
     codigo_cliente  INT NOT NULL,
     importe         INT NOT NULL CHECK ( importe > 0 ),
     FOREIGN KEY (codigo_cliente) REFERENCES clientes_banco(codigo) ON DELETE CASCADE, /*ON UPDATE RESTRICT?*/
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS pagos_cuotas (
     nro_cuota       INT,            /* TODO: check if not null is necesary*/
     codigo_prestamo INT,            /* TODO: check if not null is necesary*/
     importe         INT NOT NULL CHECK ( importe > 0 ),
-    fecha           DATE NOT NULL,
+    fecha           DATE NOT NULL, -- TODO: check fechas?
     FOREIGN KEY (codigo_prestamo) REFERENCES prestamos_banco(codigo) ON DELETE CASCADE, /*ON UPDATE RESTRICT?*/
     PRIMARY KEY (codigo_prestamo, nro_cuota)
 );
@@ -46,14 +46,14 @@ CREATE TABLE IF NOT EXISTS backup (
 -- trigger function to save data in the backup table
 CREATE OR REPLACE FUNCTION backup_before_delete_client() RETURNS TRIGGER AS $$
 DECLARE
+    cant_prestamos_aux       INT;
     monto_prestamos_aux      INT;
     monto_pago_cuotas_aux    INT;
-    cant_prestamos_aux       INT;
     ind_pagos_pendientes_aux BOOLEAN;
 BEGIN
-    monto_prestamos_aux := (SELECT SUM(importe) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
-    monto_pago_cuotas_aux := (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo));
     cant_prestamos_aux := (SELECT COUNT(*) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
+    monto_prestamos_aux := (SELECT COALESCE(SUM(importe), 0) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
+    monto_pago_cuotas_aux := (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo));
     ind_pagos_pendientes_aux := (monto_prestamos_aux > monto_pago_cuotas_aux);
 
     INSERT INTO backup (dni, nombre, telefono, cant_prestamos, monto_prestamos, monto_pago_cuotas, ind_pagos_pendientes)
