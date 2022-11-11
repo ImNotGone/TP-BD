@@ -51,6 +51,7 @@ DECLARE
     monto_pago_cuotas_aux    INT;
     ind_pagos_pendientes_aux BOOLEAN;
 BEGIN
+    -- TODO: replace FROM prestamos banco where codigo_cliente = OLD.codigo with cursor?
     cant_prestamos_aux := (SELECT COUNT(*) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
     monto_prestamos_aux := (SELECT COALESCE(SUM(importe), 0) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
     monto_pago_cuotas_aux := (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo));
