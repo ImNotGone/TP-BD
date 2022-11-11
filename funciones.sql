@@ -39,21 +39,25 @@ CREATE TABLE IF NOT EXISTS backup (
     cant_prestamos       INT,                   -- cantidad de prestamos otorgados
     monto_prestamos      INT,                   -- monto total de prestamos otorgados
     monto_pago_cuotas    INT,                   -- monto total de pagos realizados
-    ind_pagos_pendientes BOOLEAN,               -- indicador de pagos pentientes (true if monto_prestamos != monto_pago_cuotas)
+    ind_pagos_pendientes BOOLEAN,               -- indicador de pagos pentientes (true if monto_prestamos > monto_pago_cuotas)
     PRIMARY KEY (dni)
 );
 
 -- trigger function to save data in the backup table
 CREATE OR REPLACE FUNCTION backup_before_delete_client() RETURNS TRIGGER AS $$
+DECLARE
+    monto_prestamos_aux      INT;
+    monto_pago_cuotas_aux    INT;
+    cant_prestamos_aux       INT;
+    ind_pagos_pendientes_aux BOOLEAN;
 BEGIN
-    -- TODO: optimizar? Select sum(importe) from prestamos_banco se hace 2 veces
+    monto_prestamos_aux := (SELECT SUM(importe) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
+    monto_pago_cuotas_aux := (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo));
+    cant_prestamos_aux := (SELECT COUNT(*) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
+    ind_pagos_pendientes_aux := (monto_prestamos_aux > monto_pago_cuotas_aux);
+
     INSERT INTO backup (dni, nombre, telefono, cant_prestamos, monto_prestamos, monto_pago_cuotas, ind_pagos_pendientes)
-    VALUES (OLD.dni, OLD.nombre, OLD.telefono,
-        (SELECT COUNT(*) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo),
-        (SELECT SUM(importe) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo),
-        (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo)),
-        (SELECT SUM(importe) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo) > (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo))
-    );
+    VALUES (OLD.dni, OLD.nombre, OLD.telefono, cant_prestamos_aux, monto_prestamos_aux, monto_pago_cuotas_aux, ind_pagos_pendientes_aux);
     RETURN OLD; -- TODO: revisar
 END;
 $$ LANGUAGE plpgsql;
@@ -65,21 +69,18 @@ CREATE TRIGGER backup_before_delete_client
     EXECUTE PROCEDURE backup_before_delete_client();    -- execute backup
 
 -- TESTING - CHECKING TRIGGER WORK COMPARING WITH THE TASK EXAMPLE
-/*
 DELETE FROM clientes_banco WHERE codigo = 1;
 DELETE FROM clientes_banco WHERE codigo = 2;
 DELETE FROM clientes_banco WHERE codigo = 4;
 DELETE FROM clientes_banco WHERE codigo = 5;
 DELETE FROM clientes_banco WHERE codigo =  36;
 DELETE FROM clientes_banco WHERE codigo =  37;
-*/
+
 
 -- TESTING - CLEANUP
-/*
-DROP TRIGGER backup_before_delete_client ON clientes_banco;
-DROP FUNCTION backup_before_delete_client();
-DROP TABLE backup;
-DROP TABLE pagos_cuotas;
-DROP TABLE prestamos_banco;
-DROP TABLE clientes_banco;
-*/
+DROP TRIGGER  IF EXISTS backup_before_delete_client ON clientes_banco;
+DROP FUNCTION IF EXISTS backup_before_delete_client();
+DROP TABLE    IF EXISTS backup;
+DROP TABLE    IF EXISTS pagos_cuotas;
+DROP TABLE    IF EXISTS prestamos_banco;
+DROP TABLE    IF EXISTS clientes_banco;
