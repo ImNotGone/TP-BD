@@ -46,15 +46,23 @@ CREATE TABLE IF NOT EXISTS backup (
 -- trigger function to save data in the backup table
 CREATE OR REPLACE FUNCTION backup_before_delete_client() RETURNS TRIGGER AS $$
 DECLARE
+    prestamos_banco_cursor   CURSOR FOR SELECT * FROM prestamos_banco WHERE codigo_cliente = OLD.codigo;
+    prestamo_banco           RECORD;
     cant_prestamos_aux       INT;
     monto_prestamos_aux      INT;
     monto_pago_cuotas_aux    INT;
     ind_pagos_pendientes_aux BOOLEAN;
 BEGIN
-    -- TODO: replace FROM prestamos banco where codigo_cliente = OLD.codigo with cursor?
-    cant_prestamos_aux := (SELECT COUNT(*) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
-    monto_prestamos_aux := (SELECT COALESCE(SUM(importe), 0) FROM prestamos_banco WHERE codigo_cliente = OLD.codigo);
-    monto_pago_cuotas_aux := (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo IN (SELECT codigo FROM prestamos_banco WHERE codigo_cliente = OLD.codigo));
+    cant_prestamos_aux := 0;
+    monto_prestamos_aux := 0;
+    monto_pago_cuotas_aux := 0;
+
+    FOR prestamo_banco IN prestamos_banco_cursor LOOP
+        cant_prestamos_aux := cant_prestamos_aux + 1;
+        monto_prestamos_aux := monto_prestamos_aux + prestamo_banco.importe;
+        monto_pago_cuotas_aux := monto_pago_cuotas_aux + (SELECT COALESCE(SUM(importe), 0) FROM pagos_cuotas WHERE codigo_prestamo = prestamo_banco.codigo);
+    END LOOP;
+
     ind_pagos_pendientes_aux := (monto_prestamos_aux > monto_pago_cuotas_aux);
 
     INSERT INTO backup (dni, nombre, telefono, cant_prestamos, monto_prestamos, monto_pago_cuotas, ind_pagos_pendientes)
