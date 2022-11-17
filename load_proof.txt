@@ -1,0 +1,3 @@
+\COPY clientes_banco(codigo, dni, telefono, nombre, direccion) FROM './clientes_banco.csv' DELIMITER ',' CSV HEADER;
+\COPY prestamos_banco(codigo, fecha, codigo_cliente, importe) FROM './prestamos_banco.csv' DELIMITER ',' CSV HEADER;
+\COPY pagos_cuotas(nro_cuota, codigo_prestamo, importe, fecha) FROM './pagos_cuotas.csv' DELIMITER ',' CSV HEADER;
