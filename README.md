@@ -1,6 +1,9 @@
 # TPE-BD
 
-
+### - Martin Hecht
+### - Santiago Ballerini
+### - Gonzalo Martone
+---
 ## a ) Crear las tablas que alojaran los datos de los archivos
 
 Tabla 1 clientes_banco
@@ -39,6 +42,7 @@ CREATE TABLE IF NOT EXISTS pagos_cuotas (
     PRIMARY KEY (codigo_prestamo, nro_cuota)
 );
 ```
+---
 ## b ) Crear la tabla de backup que permitira preservar la informacion que se perderia ante la eliminacion de tuplas de la entidad dominante
 
 Tabla 4 backup
@@ -63,6 +67,7 @@ CREATE TABLE IF NOT EXISTS backup (
 );
 ```
 
+---
 ## c ) Importar los datos y cargar las tablas correspondientes
 
 Despues de cargar los archivos necesarios a pampero via el comando
@@ -74,7 +79,7 @@ En la carpeta `<dir>` dentro de pampero, ejecutamos el siguiente comando
 ```sh
 psql -h bd1.it.itba.edu.ar -U <user> PROOF < load_proof.txt
 ```
-
+---
 ## d ) Interceptar el evento de borrado de la tabla de clientes para hacer un backup de la informacion relevante
 
 Para cargar la informacion relevante a la tabla backup previo al evento de borrado hicimos una funcion en conjunto con un trigger
